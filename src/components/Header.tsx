@@ -2,6 +2,7 @@
 
 import { type User } from "firebase/auth";
 import { useCurrency } from "@/lib/currency-context";
+import { useIsMobile } from "@/lib/use-mobile";
 
 type Tab = "overview" | "charts" | "purchases";
 
@@ -18,9 +19,9 @@ interface HeaderProps {
 }
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "overview",   label: "Overview"   },
-  { id: "charts",     label: "Charts"     },
-  { id: "purchases",  label: "Purchases"  },
+  { id: "overview",  label: "Overview"  },
+  { id: "charts",    label: "Charts"    },
+  { id: "purchases", label: "Purchases" },
 ];
 
 export default function Header({
@@ -28,6 +29,7 @@ export default function Header({
   user, onSignIn, onSignOut, onAddPurchase,
 }: HeaderProps) {
   const { isTRY, toggle, tryRate } = useCurrency();
+  const isMobile = useIsMobile();
 
   const displayPrice = btcPrice !== null
     ? isTRY
@@ -40,6 +42,146 @@ export default function Header({
   const retUp     = totalReturn !== null && totalReturn >= 0;
   const retClr    = totalReturn === null ? "#6b7280" : retUp ? "#10b981" : "#ef4444";
 
+  /* ── Mobile layout ─────────────────────────────────────────── */
+  if (isMobile) {
+    return (
+      <header style={{ backgroundColor: "#0a0a0f", borderBottom: "1px solid #1a1a2e", position: "sticky", top: 0, zIndex: 50 }}>
+
+        {/* Row 1: logo + price pill + auth */}
+        <div style={{ padding: "0 16px", height: 52, display: "flex", alignItems: "center", gap: 10 }}>
+
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+            <div style={{
+              width: 26, height: 26, borderRadius: "50%",
+              background: "linear-gradient(135deg, #F7931A 0%, #e8850a 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontWeight: 800, fontSize: 13, color: "#fff",
+            }}>₿</div>
+            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff" }}>
+              Lora<span style={{ color: "#F7931A" }}>Tracker</span>
+            </span>
+          </div>
+
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Currency toggle */}
+          <div style={{ display: "flex", gap: 1, backgroundColor: "#111118", border: "1px solid #1a1a2e", borderRadius: 6, padding: 2 }}>
+            {(["USD", "TRY"] as const).map((cur) => {
+              const active = (cur === "TRY") === isTRY;
+              return (
+                <button key={cur} onClick={toggle} style={{
+                  padding: "2px 7px", borderRadius: 4, border: "none", cursor: "pointer",
+                  fontSize: 10, fontWeight: 600, fontFamily: "inherit",
+                  transition: "all 0.15s",
+                  backgroundColor: active ? "#F7931A" : "transparent",
+                  color: active ? "#fff" : "#4b5563",
+                }}>{cur}</button>
+              );
+            })}
+          </div>
+
+          {/* BTC price compact */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 5,
+            backgroundColor: "#111118", border: "1px solid #1a1a2e",
+            borderRadius: 16, padding: "4px 10px",
+          }}>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: "#10b981", display: "inline-block", animation: "hb 2s infinite" }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>{displayPrice}</span>
+            {btcChange24h !== null && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: changeClr }}>
+                {changeUp ? "▲" : "▼"}{Math.abs(btcChange24h).toFixed(1)}%
+              </span>
+            )}
+          </div>
+
+          {/* Auth */}
+          {user ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {/* Avatar */}
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%",
+                backgroundColor: "rgba(247,147,26,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, fontWeight: 700, color: "#F7931A", flexShrink: 0,
+              }}>
+                {user.email?.[0].toUpperCase() ?? "A"}
+              </div>
+              {/* Add purchase */}
+              <button onClick={onAddPurchase} style={{
+                backgroundColor: "#F7931A", color: "#fff", border: "none", borderRadius: 6,
+                padding: "5px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                fontFamily: "inherit", display: "flex", alignItems: "center", gap: 3,
+              }}>
+                <span style={{ fontSize: 15, lineHeight: 1, fontWeight: 400 }}>+</span>
+                Add
+              </button>
+              {/* Sign out */}
+              <button onClick={onSignOut} style={{
+                background: "none", border: "1px solid #1a1a2e", borderRadius: 6,
+                padding: "5px 8px", fontSize: 11, color: "#6b7280",
+                cursor: "pointer", fontFamily: "inherit",
+              }}>
+                Out
+              </button>
+            </div>
+          ) : (
+            <button onClick={onSignIn} style={{
+              backgroundColor: "transparent", color: "#F7931A",
+              border: "1px solid rgba(247,147,26,0.4)", borderRadius: 6,
+              padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              fontFamily: "inherit",
+            }}>
+              Sign In
+            </button>
+          )}
+        </div>
+
+        {/* Row 2: Nav tabs */}
+        <div style={{ display: "flex", borderTop: "1px solid #0f0f1a" }}>
+          {TABS.map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button key={tab.id} onClick={() => onTabChange(tab.id)} style={{
+                flex: 1, padding: "10px 0", border: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: active ? 700 : 400, fontFamily: "inherit",
+                backgroundColor: "transparent",
+                color: active ? "#F7931A" : "#6b7280",
+                borderBottom: active ? "2px solid #F7931A" : "2px solid transparent",
+                transition: "all 0.15s",
+              }}>
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Portfolio return strip (if available) */}
+        {totalReturn !== null && (
+          <div style={{
+            borderTop: "1px solid #0f0f1a",
+            backgroundColor: retUp ? "rgba(16,185,129,0.05)" : "rgba(239,68,68,0.05)",
+            padding: "4px 16px",
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>Portfolio Return</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: retClr }}>
+              {retUp ? "+" : ""}{totalReturn.toFixed(1)}%
+            </span>
+          </div>
+        )}
+
+        <style>{`
+          @keyframes hb { 0%,100%{opacity:1} 50%{opacity:0.35} }
+          header button:focus { outline: none; }
+        `}</style>
+      </header>
+    );
+  }
+
+  /* ── Desktop layout ─────────────────────────────────────────── */
   return (
     <header style={{ backgroundColor: "#0a0a0f", borderBottom: "1px solid #1a1a2e", position: "sticky", top: 0, zIndex: 50 }}>
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 28px", height: 60, display: "flex", alignItems: "center", gap: 24 }}>
@@ -139,7 +281,6 @@ export default function Header({
           {/* Auth controls */}
           {user ? (
             <>
-              {/* Logged-in user chip */}
               <div style={{
                 display: "flex", alignItems: "center", gap: 7,
                 backgroundColor: "#111118", border: "1px solid #1a1a2e",
@@ -158,7 +299,6 @@ export default function Header({
                 </span>
               </div>
 
-              {/* Sign out */}
               <button onClick={onSignOut} style={{
                 background: "none", border: "1px solid #1a1a2e", borderRadius: 6,
                 padding: "6px 12px", fontSize: 12, color: "#6b7280",
@@ -170,7 +310,6 @@ export default function Header({
                 Sign out
               </button>
 
-              {/* Add Purchase */}
               <button onClick={onAddPurchase} style={{
                 backgroundColor: "#F7931A", color: "#fff", border: "none", borderRadius: 6,
                 padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
@@ -185,7 +324,6 @@ export default function Header({
               </button>
             </>
           ) : (
-            /* Sign In button */
             <button onClick={onSignIn} style={{
               backgroundColor: "transparent", color: "#F7931A",
               border: "1px solid rgba(247,147,26,0.4)", borderRadius: 6,

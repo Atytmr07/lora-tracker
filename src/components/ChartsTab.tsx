@@ -10,6 +10,7 @@ import {
 import "chartjs-adapter-date-fns";
 import { Purchase } from "@/lib/types";
 import { useCurrency } from "@/lib/currency-context";
+import { useIsMobile } from "@/lib/use-mobile";
 
 Chart.register(
   LineController, LineElement, PointElement,
@@ -78,6 +79,7 @@ export default function ChartsTab({ purchases, historicalPrices, extendedPrices,
   const { isTRY, tryRate, fmtAxis, fmt } = useCurrency();
   const [range, setRange]     = useState<TimeRange>("1Y");
   const [zoomReady, setZoomReady] = useState(false);
+  const isMobile = useIsMobile();
 
   const c1 = useRef<HTMLCanvasElement>(null);
   const c2 = useRef<HTMLCanvasElement>(null);
@@ -547,29 +549,38 @@ export default function ChartsTab({ purchases, historicalPrices, extendedPrices,
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
       {/* Time range selector */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4b5563" }}>
-          Time Range
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: 10 }}>
+        {!isMobile && (
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4b5563" }}>
+            Time Range
+          </p>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: isMobile ? "wrap" : "nowrap" }}>
           <button onClick={resetAll} style={{
             background: "none", border: "1px solid #1a1a2e", borderRadius: 6,
-            padding: "5px 12px", fontSize: 11, color: "#4b5563", cursor: "pointer",
-            fontFamily: "inherit", letterSpacing: "0.04em", transition: "all 0.15s",
+            padding: "5px 10px", fontSize: 11, color: "#4b5563", cursor: "pointer",
+            fontFamily: "inherit", letterSpacing: "0.04em", transition: "all 0.15s", flexShrink: 0,
           }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "#F7931A"; e.currentTarget.style.color = "#F7931A"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "#1a1a2e"; e.currentTarget.style.color = "#4b5563"; }}
           >
-            ↺ Reset Zoom
+            ↺ Reset
           </button>
-          <div style={{ display: "flex", gap: 2, backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e", borderRadius: 8, padding: 3 }}>
+          {/* Scrollable range buttons on mobile */}
+          <div style={{
+            display: "flex", gap: 2,
+            backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e", borderRadius: 8, padding: 3,
+            overflowX: isMobile ? "auto" : "visible",
+            flex: isMobile ? 1 : undefined,
+          }}>
             {RANGES.map(r => {
               const active = range === r;
               return (
                 <button key={r} onClick={() => setRange(r)} style={{
-                  padding: "5px 13px", borderRadius: 6, border: "none", cursor: "pointer",
+                  padding: isMobile ? "5px 10px" : "5px 13px",
+                  borderRadius: 6, border: "none", cursor: "pointer",
                   fontSize: 12, fontWeight: active ? 700 : 500, fontFamily: "inherit",
-                  letterSpacing: "0.03em", transition: "all 0.15s",
+                  letterSpacing: "0.03em", transition: "all 0.15s", flexShrink: 0,
                   backgroundColor: active ? "#F7931A" : "transparent",
                   color: active ? "#fff" : "#4b5563",
                 }}>
@@ -583,26 +594,26 @@ export default function ChartsTab({ purchases, historicalPrices, extendedPrices,
 
       {/* Chart 1 — BTC price + avg cost + 200-WMA */}
       <Card
-        title="BTC Price · Avg Cost · 200-WMA  (● = purchase, size ∝ BTC amount)"
-        height={380}
+        title={isMobile ? "BTC Price · Avg Cost · 200-WMA" : "BTC Price · Avg Cost · 200-WMA  (● = purchase, size ∝ BTC amount)"}
+        height={isMobile ? 260 : 380}
         fullWidth
         onReset={() => i1.current?.resetZoom?.()}
       >
         <canvas ref={c1} />
       </Card>
 
-      {/* Charts 2 & 3 — side by side */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <Card title="Cumulative BTC Accumulation" height={260} onReset={() => i2.current?.resetZoom?.()}>
+      {/* Charts 2 & 3 — side by side on desktop, stacked on mobile */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
+        <Card title="Cumulative BTC Accumulation" height={isMobile ? 220 : 260} onReset={() => i2.current?.resetZoom?.()}>
           <canvas ref={c2} />
         </Card>
-        <Card title="Portfolio Value vs. Total Invested  (green = profit, red = loss)" height={260} onReset={() => i3.current?.resetZoom?.()}>
+        <Card title={isMobile ? "Portfolio vs. Invested" : "Portfolio Value vs. Total Invested  (green = profit, red = loss)"} height={isMobile ? 220 : 260} onReset={() => i3.current?.resetZoom?.()}>
           <canvas ref={c3} />
         </Card>
       </div>
 
       {/* Chart 4 — per-purchase return bar chart */}
-      <Card title="Per-Purchase Return (%)" height={220} fullWidth>
+      <Card title="Per-Purchase Return (%)" height={isMobile ? 200 : 220} fullWidth>
         <canvas ref={c4} />
       </Card>
     </div>

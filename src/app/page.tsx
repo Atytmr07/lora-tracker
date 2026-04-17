@@ -15,6 +15,7 @@ import AddPurchaseModal from "@/components/AddPurchaseModal";
 import LoginModal from "@/components/LoginModal";
 import { getPurchases } from "@/lib/purchases";
 import { Purchase } from "@/lib/types";
+import { useIsMobile } from "@/lib/use-mobile";
 
 type Tab = "overview" | "charts" | "purchases";
 
@@ -34,6 +35,7 @@ export default function HomePage() {
   const [user, setUser]                 = useState<User | null>(null);
   const [showAdd, setShowAdd]           = useState(false);
   const [showLogin, setShowLogin]       = useState(false);
+  const isMobile = useIsMobile();
 
   // Auth state listener
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function HomePage() {
         onAddPurchase={() => setShowAdd(true)}
       />
 
-      <main style={{ flex: 1, maxWidth: 1280, margin: "0 auto", width: "100%", padding: "36px 28px 64px" }}>
+      <main style={{ flex: 1, maxWidth: 1280, margin: "0 auto", width: "100%", padding: isMobile ? "20px 14px 48px" : "36px 28px 64px" }}>
         {loading ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 240, color: "#374151", fontSize: 14 }}>
             Loading portfolio…

@@ -3,6 +3,7 @@
 import { Purchase } from "@/lib/types";
 import { deletePurchase } from "@/lib/purchases";
 import { useCurrency } from "@/lib/currency-context";
+import { useIsMobile } from "@/lib/use-mobile";
 import { type User } from "firebase/auth";
 
 interface Props {
@@ -18,6 +19,7 @@ function fmtDate(d: string) {
 
 export default function PurchasesTab({ purchases, btcPrice, onDeleted, user }: Props) {
   const { fmt, isTRY, tryRate } = useCurrency();
+  const isMobile = useIsMobile();
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this purchase?")) return;
@@ -51,9 +53,9 @@ export default function PurchasesTab({ purchases, btcPrice, onDeleted, user }: P
       {purchases.length > 0 && (
         <div style={{
           backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e",
-          borderRadius: "10px 10px 0 0", padding: "14px 20px",
-          display: "flex", gap: 32, alignItems: "center",
-          borderBottom: "none",
+          borderRadius: "10px 10px 0 0", padding: isMobile ? "12px 14px" : "14px 20px",
+          display: "flex", gap: isMobile ? 16 : 32, alignItems: "center",
+          borderBottom: "none", flexWrap: isMobile ? "wrap" : "nowrap",
         }}>
           {[
             { label: "Holdings", value: `₿ ${totalBtc.toFixed(4)}` },
@@ -74,17 +76,17 @@ export default function PurchasesTab({ purchases, btcPrice, onDeleted, user }: P
       <div style={{
         backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e",
         borderRadius: purchases.length > 0 ? "0 0 10px 10px" : 10,
-        overflow: "hidden",
+        overflow: "hidden", overflowX: "auto",
       }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: isMobile ? 520 : undefined }}>
           <thead>
             <tr>
-              <TH>#</TH>
+              {!isMobile && <TH>#</TH>}
               <TH>Date</TH>
-              <TH>BTC Amount</TH>
+              <TH>BTC</TH>
               <TH>Buy Price</TH>
-              <TH>Total Cost</TH>
-              <TH>Current Value</TH>
+              {!isMobile && <TH>Cost</TH>}
+              {!isMobile && <TH>Value</TH>}
               <TH right>P&L</TH>
               <TH right>Return</TH>
               {user && <TH>{""}</TH>}
@@ -115,12 +117,12 @@ export default function PurchasesTab({ purchases, btcPrice, onDeleted, user }: P
                   onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#131323")}
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = rowBg)}
                 >
-                  <TD style={{ color: "#374151", fontSize: 12 }}>{i + 1}</TD>
-                  <TD>{fmtDate(p.date)}</TD>
+                  {!isMobile && <TD style={{ color: "#374151", fontSize: 12 }}>{i + 1}</TD>}
+                  <TD>{isMobile ? p.date.slice(2) : fmtDate(p.date)}</TD>
                   <TD style={{ color: ORANGE, fontWeight: 700 }}>₿ {p.btc.toFixed(4)}</TD>
                   <TD>{buyPrice}</TD>
-                  <TD>{fmt(costUsd)}</TD>
-                  <TD>{valueUsd !== null ? fmt(valueUsd) : <span style={{ color: "#374151" }}>—</span>}</TD>
+                  {!isMobile && <TD>{fmt(costUsd)}</TD>}
+                  {!isMobile && <TD>{valueUsd !== null ? fmt(valueUsd) : <span style={{ color: "#374151" }}>—</span>}</TD>}
                   <TD right style={{ color: pnlColor, fontWeight: 600 }}>
                     {pnlUsd === null ? <span style={{ color: "#374151" }}>—</span> : (up ? "+" : "") + fmt(pnlUsd)}
                   </TD>
@@ -129,12 +131,12 @@ export default function PurchasesTab({ purchases, btcPrice, onDeleted, user }: P
                       <span style={{ color: "#374151" }}>—</span>
                     ) : (
                       <span style={{
-                        display: "inline-block", padding: "2px 8px", borderRadius: 4,
+                        display: "inline-block", padding: "2px 6px", borderRadius: 4,
                         fontSize: 12, fontWeight: 700,
                         backgroundColor: up ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
                         color: pnlColor,
                       }}>
-                        {ret >= 0 ? "+" : ""}{ret.toFixed(2)}%
+                        {ret >= 0 ? "+" : ""}{ret.toFixed(1)}%
                       </span>
                     )}
                   </TD>
@@ -142,13 +144,13 @@ export default function PurchasesTab({ purchases, btcPrice, onDeleted, user }: P
                     <TD>
                       <button onClick={() => handleDelete(p.id)} style={{
                         background: "none", border: "1px solid #1a1a2e", borderRadius: 4,
-                        padding: "3px 10px", fontSize: 11, color: "#374151",
+                        padding: "3px 8px", fontSize: 11, color: "#374151",
                         cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
                       }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor = "#ef4444"; e.currentTarget.style.color = "#ef4444"; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = "#1a1a2e"; e.currentTarget.style.color = "#374151"; }}
                       >
-                        Delete
+                        Del
                       </button>
                     </TD>
                   )}

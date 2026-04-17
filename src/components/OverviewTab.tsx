@@ -4,6 +4,7 @@ import MetricCard from "./MetricCard";
 import HeroSection from "./HeroSection";
 import { Purchase } from "@/lib/types";
 import { useCurrency } from "@/lib/currency-context";
+import { useIsMobile } from "@/lib/use-mobile";
 
 interface OverviewTabProps {
   purchases: Purchase[];
@@ -13,6 +14,7 @@ interface OverviewTabProps {
 
 export default function OverviewTab({ purchases, btcPrice, historicalPrices }: OverviewTabProps) {
   const { fmt, isTRY, tryRate } = useCurrency();
+  const isMobile = useIsMobile();
 
   const totalBtc        = purchases.reduce((s, p) => s + p.btc, 0);
   const totalInvestedUsd = purchases.reduce((s, p) => s + p.btc * p.price, 0);
@@ -98,7 +100,7 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices }: O
 
       {/* ── 8 Metric cards in 4×2 grid ── */}
       <SectionLabel>Portfolio Metrics</SectionLabel>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 32 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 10 : 14, marginBottom: 32 }}>
         <MetricCard
           label="Total BTC"
           value={`₿ ${totalBtc.toFixed(4)}`}
@@ -164,12 +166,12 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices }: O
           <SectionLabel>DCA Analysis</SectionLabel>
           <div style={{
             backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e",
-            borderRadius: 10, padding: "20px 24px", marginBottom: 32,
+            borderRadius: 10, padding: isMobile ? "16px 14px" : "20px 24px", marginBottom: 32,
           }}>
             {/* Row 1: Timeline */}
             <div style={{
-              display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 0, borderBottom: "1px solid #12121e", paddingBottom: 20, marginBottom: 20,
+              display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
+              gap: isMobile ? 16 : 0, borderBottom: "1px solid #12121e", paddingBottom: 20, marginBottom: 20,
             }}>
               {[
                 {
@@ -198,7 +200,7 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices }: O
             </div>
 
             {/* Row 2: Performance */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 16 : 0 }}>
               {[
                 {
                   label: "Best Buy",
@@ -232,7 +234,7 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices }: O
 
           {/* Strategy cards */}
           <SectionLabel>Strategy Analysis</SectionLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(1, 1fr)" : "repeat(3, 1fr)", gap: 10 }}>
             <MetricCard
               label="Holding Period"
               value={daysHolding !== null ? `${daysHolding} days` : "—"}
@@ -263,15 +265,15 @@ function DcaCell({ label, value, sub, valueColor }: {
   label: string; value: string; sub?: string; valueColor?: string;
 }) {
   return (
-    <div style={{ padding: "0 20px 0 0" }}>
-      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4b5563", marginBottom: 6 }}>
+    <div style={{ padding: "0 12px 0 0" }}>
+      <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4b5563", marginBottom: 5 }}>
         {label}
       </div>
-      <div style={{ fontSize: 17, fontWeight: 700, color: valueColor || "#e2e8f0", letterSpacing: "-0.02em", marginBottom: 3 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: valueColor || "#e2e8f0", letterSpacing: "-0.02em", marginBottom: 3 }}>
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 11, color: "#374151" }}>{sub}</div>
+        <div style={{ fontSize: 10, color: "#374151" }}>{sub}</div>
       )}
     </div>
   );
