@@ -10,9 +10,11 @@ interface OverviewTabProps {
   purchases: Purchase[];
   btcPrice: number | null;
   historicalPrices: [number, number][];
+  btcDominance?: number | null;
+  totalMcapT?: number | null;
 }
 
-export default function OverviewTab({ purchases, btcPrice, historicalPrices }: OverviewTabProps) {
+export default function OverviewTab({ purchases, btcPrice, historicalPrices, btcDominance, totalMcapT }: OverviewTabProps) {
   const { fmt, isTRY, tryRate } = useCurrency();
   const isMobile = useIsMobile();
 
@@ -97,6 +99,37 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices }: O
   return (
     <div>
       <HeroSection purchases={purchases} btcPrice={btcPrice} />
+
+      {/* ── Market Context ── */}
+      {(btcDominance !== null || totalMcapT !== null) && (
+        <>
+          <SectionLabel>Market</SectionLabel>
+          <div style={{
+            display: "flex", gap: isMobile ? 10 : 14, marginBottom: 28, flexWrap: "wrap",
+          }}>
+            {btcDominance !== null && (
+              <DominanceCard dominance={btcDominance} isMobile={isMobile} />
+            )}
+            {totalMcapT !== null && (
+              <div style={{
+                backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e",
+                borderRadius: 10, padding: isMobile ? "14px 16px" : "18px 22px",
+                flex: isMobile ? "1 1 140px" : "0 0 auto", minWidth: 140,
+                position: "relative", overflow: "hidden",
+              }}>
+                <div style={{ position: "absolute", top: 0, left: 0, width: "40%", height: 2, backgroundColor: "#6b7280", opacity: 0.4 }} />
+                <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4b5563", marginBottom: 6 }}>
+                  Total Market Cap
+                </div>
+                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "#e2e8f0", letterSpacing: "-0.03em" }}>
+                  ${totalMcapT.toFixed(2)}T
+                </div>
+                <div style={{ fontSize: 10, color: "#374151", marginTop: 3 }}>USD</div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* ── 8 Metric cards in 4×2 grid ── */}
       <SectionLabel>Portfolio Metrics</SectionLabel>
@@ -257,6 +290,51 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices }: O
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function DominanceCard({ dominance, isMobile }: { dominance: number; isMobile: boolean }) {
+  // Qualitative label
+  const label = dominance >= 60 ? "Bitcoin Season" : dominance >= 50 ? "BTC Favored" : dominance >= 40 ? "Mixed Market" : "Alt Season";
+  const labelColor = dominance >= 55 ? "#F7931A" : dominance >= 45 ? "#f59e0b" : "#8b5cf6";
+  const altPct = 100 - dominance;
+
+  return (
+    <div style={{
+      backgroundColor: "#0e0e1a", border: "1px solid #1a1a2e",
+      borderRadius: 10, padding: isMobile ? "14px 16px" : "18px 22px",
+      flex: isMobile ? "1 1 160px" : "0 0 auto", minWidth: isMobile ? 160 : 260,
+      position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", top: 0, left: 0, width: "40%", height: 2, backgroundColor: "#F7931A", opacity: 0.6 }} />
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#4b5563" }}>
+          BTC Dominance
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: labelColor, backgroundColor: `${labelColor}18`, borderRadius: 4, padding: "1px 7px" }}>
+          {label}
+        </div>
+      </div>
+
+      <div style={{ fontSize: isMobile ? 28 : 34, fontWeight: 800, color: "#F7931A", letterSpacing: "-0.04em", lineHeight: 1, marginBottom: 10 }}>
+        {dominance.toFixed(1)}%
+      </div>
+
+      {/* Dominance bar */}
+      <div style={{ height: 6, borderRadius: 3, backgroundColor: "#1a1a2e", overflow: "hidden" }}>
+        <div style={{
+          height: "100%", borderRadius: 3,
+          width: `${dominance}%`,
+          background: "linear-gradient(90deg, #F7931A 0%, #e8850a 100%)",
+          transition: "width 0.5s ease",
+        }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, fontSize: 10, color: "#4b5563" }}>
+        <span>₿ BTC {dominance.toFixed(1)}%</span>
+        <span>ALT {altPct.toFixed(1)}%</span>
+      </div>
     </div>
   );
 }

@@ -25,6 +25,7 @@ const DAILY_URL    = "https://api.coingecko.com/api/v3/coins/bitcoin/market_char
 const EXTENDED_URL = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000"; // ~2.7 years daily, free
 const ALL_URL      = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1w&limit=600";  // ~11 years weekly, free
 const PRICE_URL    = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true";
+const GLOBAL_URL   = "https://api.coingecko.com/api/v3/global";
 
 export default function HomePage() {
   const [activeTab, setActiveTab]       = useState<Tab>("overview");
@@ -35,6 +36,8 @@ export default function HomePage() {
   const [user, setUser]                 = useState<User | null>(null);
   const [showAdd, setShowAdd]           = useState(false);
   const [showLogin, setShowLogin]       = useState(false);
+  const [btcDominance, setBtcDominance] = useState<number | null>(null);
+  const [totalMcapT, setTotalMcapT]     = useState<number | null>(null); // trillions
   const isMobile = useIsMobile();
 
   // Auth state listener
@@ -67,6 +70,21 @@ export default function HomePage() {
     }
     poll();
     const id = setInterval(poll, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // BTC dominance + global market cap (every 5 min)
+  useEffect(() => {
+    async function pollGlobal() {
+      try {
+        const data = await fetcher(GLOBAL_URL);
+        setBtcDominance(data.data?.market_cap_percentage?.btc ?? null);
+        const mcap = data.data?.total_market_cap?.usd;
+        setTotalMcapT(mcap ? mcap / 1e12 : null);
+      } catch {}
+    }
+    pollGlobal();
+    const id = setInterval(pollGlobal, 300_000);
     return () => clearInterval(id);
   }, []);
 
@@ -106,6 +124,7 @@ export default function HomePage() {
         btcPrice={btcPrice}
         btcChange24h={btcChange24h}
         totalReturn={totalReturn}
+        btcDominance={btcDominance}
         user={user}
         onSignIn={() => setShowLogin(true)}
         onSignOut={() => signOut(auth)}
@@ -120,7 +139,7 @@ export default function HomePage() {
         ) : (
           <>
             {activeTab === "overview" && (
-              <OverviewTab purchases={purchases} btcPrice={btcPrice} historicalPrices={historicalPrices} />
+              <OverviewTab purchases={purchases} btcPrice={btcPrice} historicalPrices={historicalPrices} btcDominance={btcDominance} totalMcapT={totalMcapT} />
             )}
             {activeTab === "charts" && (
               <ChartsTab purchases={purchases} historicalPrices={historicalPrices} extendedPrices={extendedPrices} allTimePrices={allTimePrices} />

@@ -12,6 +12,7 @@ interface HeaderProps {
   btcPrice: number | null;
   btcChange24h: number | null;
   totalReturn: number | null;
+  btcDominance?: number | null;
   user: User | null;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -25,7 +26,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function Header({
-  activeTab, onTabChange, btcPrice, btcChange24h, totalReturn,
+  activeTab, onTabChange, btcPrice, btcChange24h, totalReturn, btcDominance,
   user, onSignIn, onSignOut, onAddPurchase,
 }: HeaderProps) {
   const { isTRY, toggle, tryRate } = useCurrency();
@@ -158,18 +159,33 @@ export default function Header({
           })}
         </div>
 
-        {/* Portfolio return strip (if available) */}
-        {totalReturn !== null && (
+        {/* Portfolio return + dominance strip */}
+        {(totalReturn !== null || btcDominance !== null) && (
           <div style={{
             borderTop: "1px solid #0f0f1a",
-            backgroundColor: retUp ? "rgba(16,185,129,0.05)" : "rgba(239,68,68,0.05)",
-            padding: "4px 16px",
-            display: "flex", alignItems: "center", gap: 8,
+            backgroundColor: "#080810",
+            padding: "5px 16px",
+            display: "flex", alignItems: "center", gap: 16,
           }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>Portfolio Return</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: retClr }}>
-              {retUp ? "+" : ""}{totalReturn.toFixed(1)}%
-            </span>
+            {totalReturn !== null && (
+              <>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>Portfolio</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: retClr }}>
+                  {retUp ? "+" : ""}{totalReturn.toFixed(1)}%
+                </span>
+              </>
+            )}
+            {totalReturn !== null && btcDominance !== null && (
+              <span style={{ color: "#1a1a2e" }}>·</span>
+            )}
+            {btcDominance !== null && (
+              <>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>BTC Dom</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#F7931A" }}>
+                  {btcDominance.toFixed(1)}%
+                </span>
+              </>
+            )}
           </div>
         )}
 
@@ -274,6 +290,21 @@ export default function Header({
               <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>Portfolio</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: retClr }}>
                 {retUp ? "+" : ""}{totalReturn.toFixed(1)}%
+              </span>
+            </div>
+          )}
+
+          {/* BTC Dominance badge */}
+          {btcDominance !== null && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 5,
+              backgroundColor: "#111118", border: "1px solid rgba(247,147,26,0.2)",
+              borderRadius: 20, padding: "5px 12px",
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#F7931A", opacity: 0.7 }}>₿</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>Dom</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#F7931A" }}>
+                {btcDominance.toFixed(1)}%
               </span>
             </div>
           )}
