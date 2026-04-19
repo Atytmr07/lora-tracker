@@ -72,7 +72,7 @@ function calc200WMA(prices: [number, number][]): Pt[] {
 }
 
 function calcRadius(btc: number, lo: number, hi: number) {
-  return lo === hi ? 7 : 5 + ((btc - lo) / (hi - lo)) * 13;
+  return lo === hi ? 4 : 3 + ((btc - lo) / (hi - lo)) * 7;
 }
 
 export default function ChartsTab({ purchases, historicalPrices, extendedPrices, allTimePrices }: Props) {
