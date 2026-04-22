@@ -182,7 +182,7 @@ export default function Header({
               <>
                 <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>BTC Dom</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#F7931A" }}>
-                  {btcDominance.toFixed(1)}%
+                  {(btcDominance ?? 0).toFixed(1)}%
                 </span>
               </>
             )}
@@ -304,7 +304,7 @@ export default function Header({
               <span style={{ fontSize: 10, fontWeight: 700, color: "#F7931A", opacity: 0.7 }}>₿</span>
               <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", textTransform: "uppercase", letterSpacing: "0.06em" }}>Dom</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#F7931A" }}>
-                {btcDominance.toFixed(1)}%
+                {(btcDominance ?? 0).toFixed(1)}%
               </span>
             </div>
           )}

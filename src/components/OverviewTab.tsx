@@ -108,7 +108,7 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices, btc
             display: "flex", gap: isMobile ? 10 : 14, marginBottom: 28, flexWrap: "wrap",
           }}>
             {btcDominance !== null && (
-              <DominanceCard dominance={btcDominance} isMobile={isMobile} />
+              <DominanceCard dominance={btcDominance!} isMobile={isMobile} />
             )}
             {totalMcapT !== null && (
               <div style={{
@@ -122,7 +122,7 @@ export default function OverviewTab({ purchases, btcPrice, historicalPrices, btc
                   Total Market Cap
                 </div>
                 <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "#e2e8f0", letterSpacing: "-0.03em" }}>
-                  ${totalMcapT.toFixed(2)}T
+                  ${(totalMcapT ?? 0).toFixed(2)}T
                 </div>
                 <div style={{ fontSize: 10, color: "#374151", marginTop: 3 }}>USD</div>
               </div>
